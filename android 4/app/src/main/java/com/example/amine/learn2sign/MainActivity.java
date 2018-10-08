@@ -61,6 +61,7 @@ import static com.example.amine.learn2sign.LoginActivity.INTENT_WORD;
 public class MainActivity extends AppCompatActivity {
 
 
+
     static final int REQUEST_VIDEO_CAPTURE = 1;
 
     @BindView(R.id.rg_practice_learn)
@@ -124,11 +125,14 @@ public class MainActivity extends AppCompatActivity {
                 if(checkedId==rb_learn.getId()) {
                     Toast.makeText(getApplicationContext(),"Learn",Toast.LENGTH_SHORT).show();
                     vv_video_learn.setVisibility(View.VISIBLE);
+                    sp_words.setSelection(0);
                     vv_video_learn.start();
                     time_started = System.currentTimeMillis();
                 } else if ( checkedId==rb_practice.getId()) {
                     Toast.makeText(getApplicationContext(),"Practice",Toast.LENGTH_SHORT).show();
-                    vv_video_learn.setVisibility(View.GONE);
+                    int choice = randomSignName();
+                    sp_words.setSelection(choice);
+                    vv_video_learn.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -215,6 +219,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    //method to generate random names for actions
+    public int randomSignName()
+    {
+        String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
+        int Min = 0;
+        int Max = 24;
+        double rndNum = Math.random() * ( Max - Min );
+
+        return (int)rndNum;
+    }
+
     public void play_video(String text) {
         old_text = text;
         if(text.equals("About")) {
@@ -278,8 +293,6 @@ public class MainActivity extends AppCompatActivity {
     }
     @OnClick(R.id.bt_record)
     public void record_video() {
-
-
 
          if( ContextCompat.checkSelfPermission(this,
                 Manifest.permission.CAMERA)
