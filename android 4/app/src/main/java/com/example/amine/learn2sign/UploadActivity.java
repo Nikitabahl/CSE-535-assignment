@@ -55,8 +55,12 @@ public class UploadActivity extends AppCompatActivity {
     UploadActivity uploadActivity;
     SharedPreferences sharedPreferences;
     static int upload_number = 0;
+    Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        context = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload);
         ButterKnife.bind(this);
@@ -160,7 +164,8 @@ public class UploadActivity extends AppCompatActivity {
                                 Log.e("msg on finish", upload_number+"");
                                 upload_number = upload_number + 1;
                                 if(upload_number == checked.length) {
-                                    upload_log_file();
+                                    upload_number = 0;
+                                    UploadLogHelper.upload_log_file(context);
                                 }
                                 tv_filename.setVisibility(View.GONE);
                                 progressBar.setVisibility(View.GONE);
@@ -178,42 +183,6 @@ public class UploadActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
-
-    }
-    public void upload_log_file() {
-        upload_number = 0;
-        Toast.makeText(this,"Upload to Server", Toast.LENGTH_LONG).show();
-        String id = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getString(INTENT_ID,"00000000");
-
-        String server_ip = getSharedPreferences(this.getPackageName(), Context.MODE_PRIVATE).getString(INTENT_SERVER_ADDRESS,"10.211.17.171");
-
-        File n = new File(getFilesDir().getPath());
-        File f = new File(n.getParent()+"/shared_prefs/" + getPackageName() +".xml");
-        AsyncHttpClient client_logs = new AsyncHttpClient();
-        RequestParams params = new RequestParams();
-        try {
-            params.put("uploaded_file",f);
-            params.put("id",id);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        client_logs.post("http://"+server_ip+"/upload_log_file.php", params, new AsyncHttpResponseHandler() {
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                if(statusCode==200)
-                    Toast.makeText(UploadActivity.this, "Done", Toast.LENGTH_SHORT).show();
-                else
-                    Toast.makeText(UploadActivity.this, "Log File could not be uploaded", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                Toast.makeText(UploadActivity.this, "Log File could not be uploaded", Toast.LENGTH_SHORT).show();
-
-            }
-        });
-
 
     }
 }
