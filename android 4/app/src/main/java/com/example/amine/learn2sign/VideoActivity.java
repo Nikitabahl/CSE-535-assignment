@@ -30,6 +30,7 @@ import android.widget.TextView;
 
 import com.facebook.stetho.common.LogUtil;
 
+import static com.example.amine.learn2sign.LoginActivity.ACTIVITY_TYPE;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_ID;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_TIME_WATCHED;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_TIME_WATCHED_VIDEO;
@@ -54,6 +55,8 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback {
     CountDownTimer timer;
     CountDownTimer time;
     long time_watched;
+    boolean isLearn = true;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +71,11 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback {
         if(getIntent().hasExtra(INTENT_TIME_WATCHED)) {
             time_watched = getIntent().getLongExtra(INTENT_TIME_WATCHED,0);
         }
+
+        if(getIntent().hasExtra(ACTIVITY_TYPE)) {
+            isLearn = getIntent().getBooleanExtra(ACTIVITY_TYPE, true);
+        }
+
         mSurfaceView = (SurfaceView) findViewById(R.id.sv_camera);
         mHolder = mSurfaceView.getHolder();
         mHolder.addCallback(this);
@@ -93,6 +101,7 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback {
                 }
                 returnIntent.putExtra(INTENT_URI,returnfile);
                 returnIntent.putExtra(INTENT_TIME_WATCHED_VIDEO , time_watched);
+                returnIntent.putExtra(ACTIVITY_TYPE , isLearn);
                 activity.setResult(8888,returnIntent);
                 activity.finish();
             }
@@ -127,6 +136,7 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback {
                     }
                     returnIntent.putExtra(INTENT_URI,returnfile);
                     returnIntent.putExtra(INTENT_TIME_WATCHED_VIDEO , time_watched);
+                    returnIntent.putExtra(ACTIVITY_TYPE , isLearn);
 
                     activity.setResult(8888,returnIntent);
                     activity.finish();
@@ -190,8 +200,9 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback {
                     if(time!=null) {
                         time.cancel();
                     }
-                    returnIntent.putExtra(INTENT_URI,returnfile);
+                    returnIntent.putExtra(INTENT_URI, returnfile);
                     returnIntent.putExtra(INTENT_TIME_WATCHED_VIDEO , time_watched);
+                    returnIntent.putExtra(ACTIVITY_TYPE , isLearn);
                     activity.setResult(8888,returnIntent);
                     activity.finish();
                 }
@@ -231,6 +242,7 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback {
 
         returnIntent.putExtra(INTENT_URI,returnfile);
         returnIntent.putExtra(INTENT_TIME_WATCHED_VIDEO , time_watched);
+        returnIntent.putExtra(ACTIVITY_TYPE , isLearn);
         activity.setResult(7777,returnIntent);
         activity.finish();
 
@@ -275,6 +287,7 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback {
         mMediaRecorder = null;
         returnIntent.putExtra(INTENT_URI,returnfile);
         returnIntent.putExtra(INTENT_TIME_WATCHED_VIDEO , time_watched);
+        returnIntent.putExtra(ACTIVITY_TYPE , isLearn);
         activity.setResult(7777,returnIntent);
         mCamera = null;
         timer.cancel();

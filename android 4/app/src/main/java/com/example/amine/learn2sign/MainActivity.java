@@ -26,13 +26,18 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.facebook.stetho.Stetho;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,9 +52,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.internal.Utils;
+import cz.msebera.android.httpclient.Header;
 
 import static android.provider.MediaStore.EXTRA_DURATION_LIMIT;
 import static android.provider.MediaStore.EXTRA_MEDIA_TITLE;
+import static com.example.amine.learn2sign.LoginActivity.ACTIVITY_TYPE;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_EMAIL;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_ID;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_SERVER_ADDRESS;
@@ -94,8 +101,20 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.bt_cancel)
     Button bt_cancel;
 
+    @BindView(R.id.bt_accept_practice)
+    Button bt_accept;
+
+    @BindView(R.id.bt_reject_practice)
+    Button bt_reject;
+
     @BindView(R.id.ll_after_record)
     LinearLayout ll_after_record;
+
+    @BindView(R.id.tv_filename)
+    TextView tv_filename;
+
+    @BindView(R.id.pb_progress)
+    ProgressBar progressBar;
 
     String path;
     String returnedURI;
@@ -104,10 +123,15 @@ public class MainActivity extends AppCompatActivity {
     long time_started = 0;
     long time_started_return = 0;
     Activity mainActivity;
+    Context context;
+    private boolean isLearn = true;
+    static int upload_number = 0;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        context = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -118,21 +142,29 @@ public class MainActivity extends AppCompatActivity {
         rb_learn.setChecked(true);
         bt_cancel.setVisibility(View.GONE);
         bt_send.setVisibility(View.GONE);
+
+        bt_accept.setVisibility(View.GONE);
+        bt_reject.setVisibility(View.GONE);
+
         rg_practice_learn.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
         {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if(checkedId==rb_learn.getId()) {
+                if( checkedId == rb_learn.getId() ) {
                     Toast.makeText(getApplicationContext(),"Learn",Toast.LENGTH_SHORT).show();
                     vv_video_learn.setVisibility(View.VISIBLE);
                     sp_words.setSelection(0);
                     vv_video_learn.start();
                     time_started = System.currentTimeMillis();
-                } else if ( checkedId==rb_practice.getId()) {
-                    Toast.makeText(getApplicationContext(),"Practice",Toast.LENGTH_SHORT).show();
+                    isLearn = true;
+                    rb_practice.setEnabled(true);
+                } else if ( checkedId == rb_practice.getId()) {
+                    Toast.makeText(getApplicationContext(),"Practice", Toast.LENGTH_SHORT).show();
                     int choice = randomSignName();
                     sp_words.setSelection(choice);
                     vv_video_learn.setVisibility(View.VISIBLE);
+                    isLearn = false;
+                    rb_learn.setEnabled(true);
                 }
             }
         });
@@ -353,9 +385,10 @@ public class MainActivity extends AppCompatActivity {
 
              time_started = System.currentTimeMillis() - time_started;
 
-             Intent t = new Intent(this,VideoActivity.class);
+             Intent t = new Intent(this, VideoActivity.class);
              t.putExtra(INTENT_WORD,sp_words.getSelectedItem().toString());
              t.putExtra(INTENT_TIME_WATCHED, time_started);
+             t.putExtra(ACTIVITY_TYPE, isLearn);
              startActivityForResult(t,9999);
 
 
@@ -397,10 +430,112 @@ public class MainActivity extends AppCompatActivity {
 
         sp_words.setEnabled(true);
 
-        rb_learn.setEnabled(true);
-        //rb_practice.setEnabled(true);
+        rb_learn.setEnabled(false);
+        rb_practice.setEnabled(true);
         time_started = System.currentTimeMillis();
+    }
 
+    @OnClick(R.id.bt_reject_practice)
+    public void reject() {
+
+        vv_record.setVisibility(View.GONE);
+        if(rb_practice.isSelected()) {
+            vv_video_learn.setVisibility(View.VISIBLE);
+        }
+        bt_record.setVisibility(View.VISIBLE);
+        bt_reject.setVisibility(View.GONE);
+        bt_accept.setVisibility(View.GONE);
+
+        sp_words.setEnabled(true);
+
+        rb_learn.setEnabled(true);
+        rb_practice.setEnabled(false);
+        time_started = System.currentTimeMillis();
+    }
+
+    @OnClick(R.id.bt_accept_practice)
+    public void accept() {
+
+        String id = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE)
+                .getString(INTENT_ID,"00000000");
+
+        String server_ip = getSharedPreferences(this.getPackageName(),
+                Context.MODE_PRIVATE).getString(INTENT_SERVER_ADDRESS,"10.211.17.171");
+
+        RequestParams params = new RequestParams();
+
+        final File file = new File(returnedURI);
+
+        try {
+            params.put("uploaded_file", file);
+            params.put("id",id);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+
+        // send request
+        AsyncHttpClient client = new AsyncHttpClient();
+
+        client.post("http://" + server_ip + "/upload_video.php", params, new AsyncHttpResponseHandler() {
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] bytes) {
+                // handle success response
+                Log.e("msg success",statusCode+"");
+                if(statusCode == 200) {
+                    upload_number += 1;
+                    Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                    file.delete();
+
+                    sharedPreferences.edit().putInt("Number_Accepted",
+                            1 + sharedPreferences.getInt("Number_Accepted",0)).apply();
+                }
+                else {
+                    Toast.makeText(MainActivity.this,
+                            "Failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] bytes, Throwable throwable) {
+                // handle failure response
+                Log.e("msg fail",statusCode+"");
+
+                Toast.makeText(MainActivity.this,
+                        "Something Went Wrong", Toast.LENGTH_SHORT).show();
+
+            }
+            @Override
+            public void onProgress(long bytesWritten, long totalSize) {
+                tv_filename.setText(bytesWritten + " out of " + totalSize);
+
+                super.onProgress(bytesWritten, totalSize);
+            }
+
+
+            @Override
+            public void onStart() {
+                tv_filename.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.VISIBLE);
+                super.onStart();
+            }
+
+            @Override
+            public void onFinish() {
+                Log.i("Practice","Upload Successful");
+
+                if (upload_number == 1) {
+                    upload_number = 0;
+                    UploadLogHelper.upload_log_file(context);
+                }
+
+                tv_filename.setVisibility(View.GONE);
+                progressBar.setVisibility(View.GONE);
+                super.onFinish();
+            }
+        });
 
     }
 
@@ -409,6 +544,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 
     Log.e("OnActivityresult",requestCode+" "+resultCode);
+
         if(requestCode==2000 ) {
             //from video activity
             vv_record.setVisibility(View.GONE);
@@ -430,10 +566,39 @@ public class MainActivity extends AppCompatActivity {
 
                 vv_record.setVisibility(View.VISIBLE);
                 bt_record.setVisibility(View.GONE);
-                bt_send.setVisibility(View.VISIBLE);
-                bt_cancel.setVisibility(View.VISIBLE);
+
+                if (intent.hasExtra(ACTIVITY_TYPE)) {
+
+                    boolean isLearnIntent = intent.getBooleanExtra(ACTIVITY_TYPE, true);
+
+                    if (isLearnIntent) {
+                        bt_send.setVisibility(View.VISIBLE);
+                        bt_cancel.setVisibility(View.VISIBLE);
+                        rb_learn.setChecked(true);
+                        rb_practice.setChecked(false);
+
+                        rb_learn.setEnabled(false);
+                        rb_practice.setEnabled(false);
+                    } else {
+                        bt_accept.setVisibility(View.VISIBLE);
+                        bt_reject.setVisibility(View.VISIBLE);
+                        rb_practice.setChecked(true);
+                        rb_learn.setChecked(false);
+
+                        rb_learn.setEnabled(false);
+                        rb_practice.setEnabled(false);
+                    }
+                } else {
+                    bt_send.setVisibility(View.VISIBLE);
+                    bt_cancel.setVisibility(View.VISIBLE);
+                    rb_learn.setChecked(true);
+                    rb_practice.setChecked(false);
+
+                    rb_learn.setEnabled(false);
+                    rb_practice.setEnabled(false);
+                }
                 sp_words.setEnabled(false);
-                rb_learn.setEnabled(false);
+
                 //rb_practice.setEnabled(false);
                 vv_record.setVideoURI(Uri.parse(returnedURI));
                 int try_number = sharedPreferences.getInt("record_"+sp_words.getSelectedItem().toString(),0);
@@ -441,7 +606,7 @@ public class MainActivity extends AppCompatActivity {
                 String toAdd  = sp_words.getSelectedItem().toString()+"_"+try_number+"_"+time_started_return + "";
                 HashSet<String> set = (HashSet<String>) sharedPreferences.getStringSet("RECORDED",new HashSet<String>());
                 set.add(toAdd);
-                sharedPreferences.edit().putStringSet("RECORDED",set).apply();
+                sharedPreferences.edit().putStringSet("RECORDED", set).apply();
                 sharedPreferences.edit().putInt("record_"+sp_words.getSelectedItem().toString(), try_number).apply();
 
                 vv_video_learn.start();
@@ -467,6 +632,24 @@ public class MainActivity extends AppCompatActivity {
                  //   sharedPreferences.edit().putInt("record_"+sp_words.getSelectedItem().toString(), try_number).apply();
 
 
+                    if (intent.hasExtra(ACTIVITY_TYPE)) {
+
+                        boolean isLearnIntent = intent.getBooleanExtra(ACTIVITY_TYPE, true);
+
+                        if (isLearnIntent) {
+                            rb_learn.setChecked(true);
+                            rb_practice.setChecked(false);
+
+                            rb_learn.setEnabled(false);
+                            rb_practice.setEnabled(true);
+                        } else {
+                            rb_practice.setChecked(true);
+                            rb_learn.setChecked(false);
+
+                            rb_learn.setEnabled(true);
+                            rb_practice.setEnabled(false);
+                        }
+                    }
 
 
                     time_started = System.currentTimeMillis();
