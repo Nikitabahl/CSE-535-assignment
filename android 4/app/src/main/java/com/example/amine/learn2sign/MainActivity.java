@@ -163,6 +163,7 @@ public class MainActivity extends AppCompatActivity {
                     selectPlayVideo("About");
                     bt_practice_more.setVisibility(View.GONE);
                     bt_record.setVisibility(View.VISIBLE);
+                    sp_words.setEnabled(true);
                 } else if ( checkedId == rb_practice.getId()) {
                     Toast.makeText(getApplicationContext(),"Practice", Toast.LENGTH_SHORT).show();
                     String choice = randomSignName();
@@ -341,6 +342,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
     @OnClick(R.id.bt_record)
     public void record_video() {
 
@@ -523,6 +525,8 @@ public class MainActivity extends AppCompatActivity {
                     bt_practice_more.setVisibility(View.VISIBLE);
                     bt_accept.setVisibility(View.GONE);
                     bt_reject.setVisibility(View.GONE);
+                    vv_record.setVisibility(View.GONE);
+                    rb_learn.setChecked(true);
                 }
                 else {
                     Toast.makeText(MainActivity.this,
@@ -610,14 +614,14 @@ public class MainActivity extends AppCompatActivity {
                         rb_practice.setChecked(false);
 
                         rb_learn.setEnabled(false);
-                        rb_practice.setEnabled(true);
+                        rb_practice.setEnabled(false);
                     } else {
                         bt_accept.setVisibility(View.VISIBLE);
                         bt_reject.setVisibility(View.VISIBLE);
                         rb_practice.setChecked(true);
                         rb_learn.setChecked(false);
 
-                        rb_learn.setEnabled(true);
+                        rb_learn.setEnabled(false);
                         rb_practice.setEnabled(false);
                     }
                 } else {
@@ -627,7 +631,7 @@ public class MainActivity extends AppCompatActivity {
                     rb_practice.setChecked(false);
 
                     rb_learn.setEnabled(false);
-                    rb_practice.setEnabled(true);
+                    rb_practice.setEnabled(false);
                 }
                 sp_words.setEnabled(false);
 
@@ -642,6 +646,7 @@ public class MainActivity extends AppCompatActivity {
                 sharedPreferences.edit().putInt("record_"+sp_words.getSelectedItem().toString(), try_number).apply();
 
                 vv_video_learn.start();
+                vv_record.start();
             }
 
         }
