@@ -462,9 +462,7 @@ public class MainActivity extends AppCompatActivity {
             vv_video_learn.setVisibility(View.VISIBLE);
         }
 
-        //bt_record.setVisibility(View.VISIBLE);
-
-        bt_practice_more.setVisibility(View.VISIBLE);
+        bt_record.setVisibility(View.VISIBLE);
 
         bt_reject.setVisibility(View.GONE);
         bt_accept.setVisibility(View.GONE);
