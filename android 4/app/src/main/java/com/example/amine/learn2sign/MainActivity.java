@@ -116,6 +116,9 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.pb_progress)
     ProgressBar progressBar;
 
+    @BindView(R.id.bt_practice_more)
+    Button bt_practice_more;
+
     String path;
     String returnedURI;
     String old_text = "";
@@ -153,18 +156,28 @@ public class MainActivity extends AppCompatActivity {
                 if( checkedId == rb_learn.getId() ) {
                     Toast.makeText(getApplicationContext(),"Learn",Toast.LENGTH_SHORT).show();
                     vv_video_learn.setVisibility(View.VISIBLE);
-                    sp_words.setSelection(0);
+                    isLearn = true;
                     vv_video_learn.start();
                     time_started = System.currentTimeMillis();
-                    isLearn = true;
                     rb_practice.setEnabled(true);
+                    selectPlayVideo("About");
+                    bt_practice_more.setVisibility(View.GONE);
+                    bt_record.setVisibility(View.VISIBLE);
                 } else if ( checkedId == rb_practice.getId()) {
                     Toast.makeText(getApplicationContext(),"Practice", Toast.LENGTH_SHORT).show();
-                    int choice = randomSignName();
-                    sp_words.setSelection(choice);
-                    vv_video_learn.setVisibility(View.VISIBLE);
+                    String choice = randomSignName();
                     isLearn = false;
+                    vv_video_learn.setVisibility(View.VISIBLE);
                     rb_learn.setEnabled(true);
+                    selectPlayVideo(choice);
+                    bt_practice_more.setVisibility(View.GONE);
+                    bt_record.setVisibility(View.VISIBLE);
+                }
+
+                if (!isLearn) {
+                    sp_words.setVisibility(View.GONE);
+                } else {
+                    sp_words.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -173,11 +186,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 String text = sp_words.getSelectedItem().toString();
-                if(!old_text.equals(text)) {
-                    path = "";
-                    time_started = System.currentTimeMillis();
-                    play_video(text);
-                }
+                selectPlayVideo(text);
             }
 
             @Override
@@ -235,6 +244,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void selectPlayVideo(String text) {
+
+        if(!old_text.equals(text)) {
+            path = "";
+            time_started = System.currentTimeMillis();
+            play_video(text);
+        }
+    }
+
     @Override
     public void onBackPressed() {
         moveTaskToBack(true);
@@ -252,14 +270,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //method to generate random names for actions
-    public int randomSignName()
+    public String randomSignName()
     {
         String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
         int Min = 0;
         int Max = 24;
-        double rndNum = Math.random() * ( Max - Min );
+        Double rndNum = Math.random() * ( Max - Min );
 
-        return (int)rndNum;
+        return signNames[rndNum.intValue()];
     }
 
     public void play_video(String text) {
@@ -439,18 +457,30 @@ public class MainActivity extends AppCompatActivity {
     public void reject() {
 
         vv_record.setVisibility(View.GONE);
+
         if(rb_practice.isSelected()) {
             vv_video_learn.setVisibility(View.VISIBLE);
         }
-        bt_record.setVisibility(View.VISIBLE);
+
+        //bt_record.setVisibility(View.VISIBLE);
+
+        bt_practice_more.setVisibility(View.VISIBLE);
+
         bt_reject.setVisibility(View.GONE);
         bt_accept.setVisibility(View.GONE);
-
-        sp_words.setEnabled(true);
 
         rb_learn.setEnabled(true);
         rb_practice.setEnabled(false);
         time_started = System.currentTimeMillis();
+    }
+
+    @OnClick(R.id.bt_practice_more)
+    public void practiceMore() {
+
+        bt_record.setVisibility(View.VISIBLE);
+        bt_practice_more.setVisibility(View.GONE);
+        String choice = randomSignName();
+        selectPlayVideo(choice);
     }
 
     @OnClick(R.id.bt_accept_practice)
@@ -491,6 +521,10 @@ public class MainActivity extends AppCompatActivity {
 
                     sharedPreferences.edit().putInt("Number_Accepted",
                             1 + sharedPreferences.getInt("Number_Accepted",0)).apply();
+
+                    bt_practice_more.setVisibility(View.VISIBLE);
+                    bt_accept.setVisibility(View.GONE);
+                    bt_reject.setVisibility(View.GONE);
                 }
                 else {
                     Toast.makeText(MainActivity.this,
@@ -578,14 +612,14 @@ public class MainActivity extends AppCompatActivity {
                         rb_practice.setChecked(false);
 
                         rb_learn.setEnabled(false);
-                        rb_practice.setEnabled(false);
+                        rb_practice.setEnabled(true);
                     } else {
                         bt_accept.setVisibility(View.VISIBLE);
                         bt_reject.setVisibility(View.VISIBLE);
                         rb_practice.setChecked(true);
                         rb_learn.setChecked(false);
 
-                        rb_learn.setEnabled(false);
+                        rb_learn.setEnabled(true);
                         rb_practice.setEnabled(false);
                     }
                 } else {
@@ -595,7 +629,7 @@ public class MainActivity extends AppCompatActivity {
                     rb_practice.setChecked(false);
 
                     rb_learn.setEnabled(false);
-                    rb_practice.setEnabled(false);
+                    rb_practice.setEnabled(true);
                 }
                 sp_words.setEnabled(false);
 

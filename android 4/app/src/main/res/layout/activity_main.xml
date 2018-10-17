@@ -107,6 +107,15 @@
             android:layout_margin="30dp"
             android:text="Record" />
 
+        <Button
+            android:id="@+id/bt_practice_more"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="30dp"
+            android:visibility="gone"
+            android:text="Practice More" />
+
         <LinearLayout
             android:id="@+id/ll_after_record"
             android:layout_width="wrap_content"
