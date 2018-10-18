@@ -2,7 +2,6 @@ package com.example.amine.learn2sign;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,8 +10,9 @@ import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
-import android.provider.MediaStore;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -34,6 +34,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.facebook.stetho.Stetho;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -44,18 +50,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashSet;
-import java.util.Set;
+
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import butterknife.internal.Utils;
 import cz.msebera.android.httpclient.Header;
 
-import static android.provider.MediaStore.EXTRA_DURATION_LIMIT;
-import static android.provider.MediaStore.EXTRA_MEDIA_TITLE;
 import static com.example.amine.learn2sign.LoginActivity.ACTIVITY_TYPE;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_EMAIL;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_ID;
@@ -132,6 +134,8 @@ public class MainActivity extends AppCompatActivity {
     static int upload_number = 0;
     static Queue<Integer> numbers = new LinkedList<Integer>();
     static HashMap<String, Integer> signMap = new HashMap<>();
+    static String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
+
 
 
     @Override
@@ -168,14 +172,30 @@ public class MainActivity extends AppCompatActivity {
                     bt_record.setVisibility(View.VISIBLE);
                     sp_words.setEnabled(true);
                 } else if ( checkedId == rb_practice.getId()) {
-                    Toast.makeText(getApplicationContext(),"Practice", Toast.LENGTH_SHORT).show();
-                    String choice = randomSignName();
-                    isLearn = false;
-                    vv_video_learn.setVisibility(View.VISIBLE);
-                    rb_learn.setEnabled(true);
-                    selectPlayVideo(choice);
-                    bt_practice_more.setVisibility(View.GONE);
-                    bt_record.setVisibility(View.VISIBLE);
+                    boolean check = checkCountForThreeEach();
+                    if(check){
+                        Toast.makeText(getApplicationContext(),"Practice", Toast.LENGTH_SHORT).show();
+                        String choice = randomSignName();
+                        isLearn = false;
+                        vv_video_learn.setVisibility(View.VISIBLE);
+                        rb_learn.setEnabled(true);
+                        selectPlayVideo(choice);
+                        bt_practice_more.setVisibility(View.GONE);
+                        bt_record.setVisibility(View.VISIBLE);
+                    }
+                    else
+                    {
+                        Toast.makeText(getApplicationContext(),"Learn",Toast.LENGTH_SHORT).show();
+                        vv_video_learn.setVisibility(View.VISIBLE);
+                        isLearn = true;
+                        vv_video_learn.start();
+                        time_started = System.currentTimeMillis();
+                        rb_practice.setEnabled(true);
+                        selectPlayVideo("About");
+                        bt_practice_more.setVisibility(View.GONE);
+                        bt_record.setVisibility(View.VISIBLE);
+                        sp_words.setEnabled(true);
+                    }
                 }
 
                 if (!isLearn) {
@@ -257,6 +277,65 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public boolean checkCountForThreeEach() {
+
+        boolean count = false;
+
+        String server_ip = getSharedPreferences(this.getPackageName(),
+                Context.MODE_PRIVATE).getString(INTENT_SERVER_ADDRESS,"10.211.17.171");
+
+        String id = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE)
+                .getString(INTENT_ID, "00000000");
+
+        String url ="http://"+server_ip+"/Learn2Sign/uploads/"+id+"/accept/";
+
+        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
+
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @RequiresApi(api = Build.VERSION_CODES.N)
+                    @Override
+                    public void onResponse(String response) {
+                        String[] resSplitString = response.split("\n");
+
+                        System.out.println("map created");
+
+                        for(String s : resSplitString){
+                            for(int i =0; i <24; i++){
+                                if (s.contains(signNames[i])){
+                                    signMap.put(signNames[i], signMap.getOrDefault(signNames[i], 0) + 1);
+                                }
+                            }
+
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.out.println("messed up!!!!!!!!!!!!");
+                    }
+                });
+
+        mRequestQueue.add(stringRequest);
+
+        for (String name : signMap.keySet()){
+            if(signMap.get(name) < 3){
+                count = false;
+                break;
+            }
+            else{
+                count = true;
+            }
+        }
+
+        for (String name : signMap.keySet()){
+            System.out.println(name + " " + signMap.get(name).toString());
+        }
+
+        return count;
+    }
+
     @Override
     public void onBackPressed() {
         moveTaskToBack(true);
@@ -276,7 +355,6 @@ public class MainActivity extends AppCompatActivity {
     //method to generate random names for actions
     public String randomSignName()
     {
-        String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
         int Min = 0;
         int Max = 24;
 
