@@ -174,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
                     else{
                         taskOnLearn();
                         rb_learn.setChecked(true);
+                        Toast.makeText(getApplicationContext(),"Learn more to enable practise",Toast.LENGTH_SHORT).show();
                     }
                 }
 
