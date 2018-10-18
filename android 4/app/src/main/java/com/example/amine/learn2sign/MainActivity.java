@@ -64,6 +64,7 @@ import static com.example.amine.learn2sign.LoginActivity.INTENT_TIME_WATCHED;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_TIME_WATCHED_VIDEO;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_URI;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_WORD;
+import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -129,6 +130,8 @@ public class MainActivity extends AppCompatActivity {
     Context context;
     private boolean isLearn = true;
     static int upload_number = 0;
+    static Queue<Integer> numbers = new LinkedList<Integer>();
+    static HashMap<String, Integer> signMap = new HashMap<>();
 
 
     @Override
@@ -276,9 +279,19 @@ public class MainActivity extends AppCompatActivity {
         String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
         int Min = 0;
         int Max = 24;
+
         Double rndNum = Math.random() * ( Max - Min );
 
+        while(numbers.contains(rndNum.intValue())){
+            rndNum = (Math.random() * ( Max - Min ));
+        }
+
+        numbers.add(rndNum.intValue());
+        if(numbers.size() >10) {
+            numbers.remove();
+        }
         return signNames[rndNum.intValue()];
+
     }
 
     public void play_video(String text) {
