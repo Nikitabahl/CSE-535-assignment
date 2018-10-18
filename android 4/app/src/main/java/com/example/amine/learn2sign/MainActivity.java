@@ -1,6 +1,7 @@
 package com.example.amine.learn2sign;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -41,6 +42,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.facebook.stetho.Stetho;
+
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -49,6 +51,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.util.HashSet;
 
@@ -67,6 +70,8 @@ import static com.example.amine.learn2sign.LoginActivity.INTENT_TIME_WATCHED_VID
 import static com.example.amine.learn2sign.LoginActivity.INTENT_URI;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_WORD;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -132,10 +137,9 @@ public class MainActivity extends AppCompatActivity {
     Context context;
     private boolean isLearn = true;
     static int upload_number = 0;
-    static Queue<Integer> numbers = new LinkedList<Integer>();
+    static Queue<Integer> numbers = new LinkedList<>();
+    static String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop","Cost", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
     static HashMap<String, Integer> signMap = new HashMap<>();
-    static String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
-
 
 
     @Override
@@ -161,40 +165,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if( checkedId == rb_learn.getId() ) {
-                    Toast.makeText(getApplicationContext(),"Learn",Toast.LENGTH_SHORT).show();
-                    vv_video_learn.setVisibility(View.VISIBLE);
-                    isLearn = true;
-                    vv_video_learn.start();
-                    time_started = System.currentTimeMillis();
-                    rb_practice.setEnabled(true);
-                    selectPlayVideo("About");
-                    bt_practice_more.setVisibility(View.GONE);
-                    bt_record.setVisibility(View.VISIBLE);
-                    sp_words.setEnabled(true);
+                    taskOnLearn();
                 } else if ( checkedId == rb_practice.getId()) {
                     boolean check = checkCountForThreeEach();
                     if(check){
-                        Toast.makeText(getApplicationContext(),"Practice", Toast.LENGTH_SHORT).show();
-                        String choice = randomSignName();
-                        isLearn = false;
-                        vv_video_learn.setVisibility(View.VISIBLE);
-                        rb_learn.setEnabled(true);
-                        selectPlayVideo(choice);
-                        bt_practice_more.setVisibility(View.GONE);
-                        bt_record.setVisibility(View.VISIBLE);
+                        taskOnPractise();
                     }
-                    else
-                    {
-                        Toast.makeText(getApplicationContext(),"Learn",Toast.LENGTH_SHORT).show();
-                        vv_video_learn.setVisibility(View.VISIBLE);
-                        isLearn = true;
-                        vv_video_learn.start();
-                        time_started = System.currentTimeMillis();
-                        rb_practice.setEnabled(true);
-                        selectPlayVideo("About");
-                        bt_practice_more.setVisibility(View.GONE);
-                        bt_record.setVisibility(View.VISIBLE);
-                        sp_words.setEnabled(true);
+                    else{
+                        taskOnLearn();
+                        rb_learn.setChecked(true);
                     }
                 }
 
@@ -268,6 +247,31 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void taskOnLearn() {
+        Toast.makeText(getApplicationContext(),"Learn",Toast.LENGTH_SHORT).show();
+        vv_video_learn.setVisibility(View.VISIBLE);
+        isLearn = true;
+        vv_video_learn.start();
+        time_started = System.currentTimeMillis();
+        rb_practice.setEnabled(true);
+        selectPlayVideo("About");
+        bt_practice_more.setVisibility(View.GONE);
+        bt_record.setVisibility(View.VISIBLE);
+        sp_words.setEnabled(true);
+
+    }
+
+    public void taskOnPractise() {
+        Toast.makeText(getApplicationContext(),"Practice", Toast.LENGTH_SHORT).show();
+        String choice = randomSignName();
+        isLearn = false;
+        vv_video_learn.setVisibility(View.VISIBLE);
+        rb_learn.setEnabled(true);
+        selectPlayVideo(choice);
+        bt_practice_more.setVisibility(View.GONE);
+        bt_record.setVisibility(View.VISIBLE);
+    }
+
     private void selectPlayVideo(String text) {
 
         if(!old_text.equals(text)) {
@@ -293,16 +297,17 @@ public class MainActivity extends AppCompatActivity {
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
+                    @TargetApi(Build.VERSION_CODES.N)
                     @RequiresApi(api = Build.VERSION_CODES.N)
                     @Override
                     public void onResponse(String response) {
+
                         String[] resSplitString = response.split("\n");
 
-                        System.out.println("map created");
-
                         for(String s : resSplitString){
-                            for(int i =0; i <24; i++){
+                            for(int i =0; i < 25; i++){
                                 if (s.contains(signNames[i])){
+
                                     signMap.put(signNames[i], signMap.getOrDefault(signNames[i], 0) + 1);
                                 }
                             }
@@ -313,26 +318,20 @@ public class MainActivity extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        System.out.println("messed up!!!!!!!!!!!!");
+                        Log.d("html", error.toString());
                     }
                 });
 
         mRequestQueue.add(stringRequest);
 
-        for (String name : signMap.keySet()){
-            if(signMap.get(name) < 3){
+        for(int check : signMap.values()){
+            if(check < 3){
                 count = false;
                 break;
             }
-            else{
-                count = true;
-            }
+            else count = true;
         }
-
-        for (String name : signMap.keySet()){
-            System.out.println(name + " " + signMap.get(name).toString());
-        }
-
+        signMap.clear();
         return count;
     }
 
