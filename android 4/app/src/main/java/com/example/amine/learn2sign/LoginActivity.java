@@ -35,6 +35,7 @@ public class LoginActivity extends AppCompatActivity {
     public static String INTENT_WORD = "INTENT_WORD";
     public static String INTENT_TIME_WATCHED = "INTENT_TIME_WATCHED";
     public static String ACTIVITY_TYPE = "INTENT_ACTIVITY_TYPE";
+    public static String VIDEO_URI = "INTENT_VIDEO_URI";
     public static String INTENT_TIME_WATCHED_VIDEO = "INTENT_TIME_WATCHED_VIDEO";
     public static String INTENT_URI = "INTENT_URI";
     public static String INTENT_SERVER_ADDRESS = "INTENT_SERVER_ADDRESS";
@@ -58,9 +59,6 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
         Stetho.initializeWithDefaults(this);
-
-
-
 
 
         time_to_login = System.currentTimeMillis();

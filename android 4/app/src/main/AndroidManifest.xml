@@ -32,6 +32,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".PracticeActitvity" />
         <activity android:name=".UploadActivity" />
         <activity android:name=".VideoActivity"
             android:screenOrientation="portrait"></activity>

@@ -69,13 +69,13 @@ import static com.example.amine.learn2sign.LoginActivity.INTENT_TIME_WATCHED;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_TIME_WATCHED_VIDEO;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_URI;
 import static com.example.amine.learn2sign.LoginActivity.INTENT_WORD;
+import static com.example.amine.learn2sign.LoginActivity.VIDEO_URI;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
-
-
 
     static final int REQUEST_VIDEO_CAPTURE = 1;
 
@@ -109,35 +109,22 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.bt_cancel)
     Button bt_cancel;
 
-    @BindView(R.id.bt_accept_practice)
-    Button bt_accept;
-
-    @BindView(R.id.bt_reject_practice)
-    Button bt_reject;
-
     @BindView(R.id.ll_after_record)
     LinearLayout ll_after_record;
 
     @BindView(R.id.tv_filename)
     TextView tv_filename;
 
-    @BindView(R.id.pb_progress)
-    ProgressBar progressBar;
-
-    @BindView(R.id.bt_practice_more)
-    Button bt_practice_more;
-
     String path;
     String returnedURI;
     String old_text = "";
+    String videoUri = "About";
     SharedPreferences sharedPreferences;
     long time_started = 0;
     long time_started_return = 0;
     Activity mainActivity;
     Context context;
-    private boolean isLearn = true;
-    static int upload_number = 0;
-    static Queue<Integer> numbers = new LinkedList<>();
+    private static final boolean isLearn = true;
     static String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop","Cost", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
     static HashMap<String, Integer> signMap = new HashMap<>();
 
@@ -156,9 +143,13 @@ public class MainActivity extends AppCompatActivity {
         rb_learn.setChecked(true);
         bt_cancel.setVisibility(View.GONE);
         bt_send.setVisibility(View.GONE);
+        ll_after_record.setVisibility(View.VISIBLE);
 
-        bt_accept.setVisibility(View.GONE);
-        bt_reject.setVisibility(View.GONE);
+        final Context context = MainActivity.this;
+
+        if(getIntent().hasExtra(VIDEO_URI)) {
+            videoUri = getIntent().getStringExtra(VIDEO_URI);
+        }
 
         rg_practice_learn.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
         {
@@ -169,20 +160,19 @@ public class MainActivity extends AppCompatActivity {
                 } else if ( checkedId == rb_practice.getId()) {
                     boolean check = checkCountForThreeEach();
                     if(check){
-                        taskOnPractise();
+                        Intent intent = new Intent(context, PracticeActitvity.class);
+                        intent.putExtra(VIDEO_URI, videoUri);
+                        startActivity(intent);
                     }
                     else{
                         taskOnLearn();
                         rb_learn.setChecked(true);
-                        Toast.makeText(getApplicationContext(),"Learn more to enable practise",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(),"Learn more to enable practise",
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
+                sp_words.setVisibility(View.VISIBLE);
 
-                if (!isLearn) {
-                    sp_words.setVisibility(View.GONE);
-                } else {
-                    sp_words.setVisibility(View.VISIBLE);
-                }
             }
         });
 
@@ -190,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 String text = sp_words.getSelectedItem().toString();
+                videoUri = text;
                 selectPlayVideo(text);
             }
 
@@ -246,31 +237,29 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this,"Already Logged In",Toast.LENGTH_SHORT).show();
 
         }
+        taskOnLearn();
     }
 
     public void taskOnLearn() {
         Toast.makeText(getApplicationContext(),"Learn",Toast.LENGTH_SHORT).show();
         vv_video_learn.setVisibility(View.VISIBLE);
-        isLearn = true;
         vv_video_learn.start();
         time_started = System.currentTimeMillis();
         rb_practice.setEnabled(true);
-        selectPlayVideo("About");
-        bt_practice_more.setVisibility(View.GONE);
+
+        int i = 0;
+        for (String name : signNames) {
+
+            if (name.equals(videoUri)) {
+                sp_words.setSelection(i);
+            }
+            i++;
+        }
+
+        selectPlayVideo(videoUri);
         bt_record.setVisibility(View.VISIBLE);
         sp_words.setEnabled(true);
 
-    }
-
-    public void taskOnPractise() {
-        Toast.makeText(getApplicationContext(),"Practice", Toast.LENGTH_SHORT).show();
-        String choice = randomSignName();
-        isLearn = false;
-        vv_video_learn.setVisibility(View.VISIBLE);
-        rb_learn.setEnabled(true);
-        selectPlayVideo(choice);
-        bt_practice_more.setVisibility(View.GONE);
-        bt_record.setVisibility(View.VISIBLE);
     }
 
     private void selectPlayVideo(String text) {
@@ -325,14 +314,15 @@ public class MainActivity extends AppCompatActivity {
 
         mRequestQueue.add(stringRequest);
 
+        count = true;
         for(int check : signMap.values()){
             if(check < 3){
                 count = false;
                 break;
             }
-            else count = true;
         }
         signMap.clear();
+        count=true;
         return count;
     }
 
@@ -349,26 +339,6 @@ public class MainActivity extends AppCompatActivity {
         vv_video_learn.start();
         time_started = System.currentTimeMillis();
         super.onResume();
-
-    }
-
-    //method to generate random names for actions
-    public String randomSignName()
-    {
-        int Min = 0;
-        int Max = 24;
-
-        Double rndNum = Math.random() * ( Max - Min );
-
-        while(numbers.contains(rndNum.intValue())){
-            rndNum = (Math.random() * ( Max - Min ));
-        }
-
-        numbers.add(rndNum.intValue());
-        if(numbers.size() >10) {
-            numbers.remove();
-        }
-        return signNames[rndNum.intValue()];
 
     }
 
@@ -546,127 +516,6 @@ public class MainActivity extends AppCompatActivity {
         time_started = System.currentTimeMillis();
     }
 
-    @OnClick(R.id.bt_reject_practice)
-    public void reject() {
-
-        vv_record.setVisibility(View.GONE);
-
-        if(rb_practice.isSelected()) {
-            vv_video_learn.setVisibility(View.VISIBLE);
-        }
-
-        bt_record.setVisibility(View.VISIBLE);
-
-        bt_reject.setVisibility(View.GONE);
-        bt_accept.setVisibility(View.GONE);
-
-        rb_learn.setEnabled(true);
-        rb_practice.setEnabled(false);
-        time_started = System.currentTimeMillis();
-    }
-
-    @OnClick(R.id.bt_practice_more)
-    public void practiceMore() {
-
-        bt_record.setVisibility(View.VISIBLE);
-        bt_practice_more.setVisibility(View.GONE);
-        String choice = randomSignName();
-        selectPlayVideo(choice);
-    }
-
-    @OnClick(R.id.bt_accept_practice)
-    public void accept() {
-
-        String id = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE)
-                .getString(INTENT_ID,"00000000");
-
-        String server_ip = getSharedPreferences(this.getPackageName(),
-                Context.MODE_PRIVATE).getString(INTENT_SERVER_ADDRESS,"10.211.17.171");
-
-        RequestParams params = new RequestParams();
-
-        final File file = new File(returnedURI);
-
-        try {
-            params.put("uploaded_file", file);
-            params.put("id",id);
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-
-        // send request
-        AsyncHttpClient client = new AsyncHttpClient();
-
-        client.post("http://" + server_ip + "/upload_video.php", params, new AsyncHttpResponseHandler() {
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] bytes) {
-                // handle success response
-                Log.e("msg success",statusCode+"");
-                if(statusCode == 200) {
-                    upload_number += 1;
-                    Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
-                    file.delete();
-
-                    sharedPreferences.edit().putInt("Number_Accepted",
-                            1 + sharedPreferences.getInt("Number_Accepted",0)).apply();
-
-                    bt_practice_more.setVisibility(View.VISIBLE);
-                    bt_accept.setVisibility(View.GONE);
-                    bt_reject.setVisibility(View.GONE);
-                    vv_record.setVisibility(View.GONE);
-                    rb_learn.setChecked(true);
-                }
-                else {
-                    Toast.makeText(MainActivity.this,
-                            "Failed", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] bytes, Throwable throwable) {
-                // handle failure response
-                Log.e("msg fail",statusCode+"");
-
-                Toast.makeText(MainActivity.this,
-                        "Something Went Wrong", Toast.LENGTH_SHORT).show();
-
-            }
-            @Override
-            public void onProgress(long bytesWritten, long totalSize) {
-                tv_filename.setText(bytesWritten + " out of " + totalSize);
-
-                super.onProgress(bytesWritten, totalSize);
-            }
-
-
-            @Override
-            public void onStart() {
-                tv_filename.setVisibility(View.VISIBLE);
-                progressBar.setVisibility(View.VISIBLE);
-                super.onStart();
-            }
-
-            @Override
-            public void onFinish() {
-                Log.i("Practice","Upload Successful");
-
-                if (upload_number == 1) {
-                    upload_number = 0;
-                    UploadLogHelper.upload_log_file(context);
-                }
-
-                tv_filename.setVisibility(View.GONE);
-                progressBar.setVisibility(View.GONE);
-                super.onFinish();
-            }
-        });
-
-    }
-
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 
@@ -694,36 +543,15 @@ public class MainActivity extends AppCompatActivity {
                 vv_record.setVisibility(View.VISIBLE);
                 bt_record.setVisibility(View.GONE);
 
-                if (intent.hasExtra(ACTIVITY_TYPE)) {
 
-                    boolean isLearnIntent = intent.getBooleanExtra(ACTIVITY_TYPE, true);
+                bt_send.setVisibility(View.VISIBLE);
+                bt_cancel.setVisibility(View.VISIBLE);
+                rb_learn.setChecked(true);
+                rb_practice.setChecked(false);
 
-                    if (isLearnIntent) {
-                        bt_send.setVisibility(View.VISIBLE);
-                        bt_cancel.setVisibility(View.VISIBLE);
-                        rb_learn.setChecked(true);
-                        rb_practice.setChecked(false);
+                rb_learn.setEnabled(false);
+                rb_practice.setEnabled(false);
 
-                        rb_learn.setEnabled(false);
-                        rb_practice.setEnabled(false);
-                    } else {
-                        bt_accept.setVisibility(View.VISIBLE);
-                        bt_reject.setVisibility(View.VISIBLE);
-                        rb_practice.setChecked(true);
-                        rb_learn.setChecked(false);
-
-                        rb_learn.setEnabled(false);
-                        rb_practice.setEnabled(false);
-                    }
-                } else {
-                    bt_send.setVisibility(View.VISIBLE);
-                    bt_cancel.setVisibility(View.VISIBLE);
-                    rb_learn.setChecked(true);
-                    rb_practice.setChecked(false);
-
-                    rb_learn.setEnabled(false);
-                    rb_practice.setEnabled(false);
-                }
                 sp_words.setEnabled(false);
 
                 //rb_practice.setEnabled(false);
@@ -744,40 +572,20 @@ public class MainActivity extends AppCompatActivity {
 
         if(requestCode==9999 && resultCode==7777)
         {
-            if(intent!=null) {
+            if(intent != null) {
                 //create folder
                 if(intent.hasExtra(INTENT_URI) && intent.hasExtra(INTENT_TIME_WATCHED_VIDEO)) {
                     returnedURI = intent.getStringExtra(INTENT_URI);
                     time_started_return = intent.getLongExtra(INTENT_TIME_WATCHED_VIDEO,0);
                     File f = new File(returnedURI);
                     f.delete();
-                  //  int try_number = sharedPreferences.getInt("record_"+sp_words.getSelectedItem().toString(),0);
-                   // try_number++;
-                    //String toAdd  = sp_words.getSelectedItem().toString()+"_"+try_number+"_"+time_started_return + "_cancelled";
-                    //HashSet<String> set = (HashSet<String>) sharedPreferences.getStringSet("RECORDED",new HashSet<String>());
-                   // set.add(toAdd);
-                  //  sharedPreferences.edit().putStringSet("RECORDED",set).apply();
-                 //   sharedPreferences.edit().putInt("record_"+sp_words.getSelectedItem().toString(), try_number).apply();
 
+                    rb_learn.setChecked(true);
+                    rb_practice.setChecked(false);
 
-                    if (intent.hasExtra(ACTIVITY_TYPE)) {
+                    rb_learn.setEnabled(false);
+                    rb_practice.setEnabled(true);
 
-                        boolean isLearnIntent = intent.getBooleanExtra(ACTIVITY_TYPE, true);
-
-                        if (isLearnIntent) {
-                            rb_learn.setChecked(true);
-                            rb_practice.setChecked(false);
-
-                            rb_learn.setEnabled(false);
-                            rb_practice.setEnabled(true);
-                        } else {
-                            rb_practice.setChecked(true);
-                            rb_learn.setChecked(false);
-
-                            rb_learn.setEnabled(true);
-                            rb_practice.setEnabled(false);
-                        }
-                    }
 
 
                     time_started = System.currentTimeMillis();
@@ -786,34 +594,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-
-        /*if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
-            final Uri videoUri = intent.getData();
-
-
-            vv_record.setVisibility(View.VISIBLE);
-            vv_record.setVideoURI(videoUri);
-            vv_record.start();
-            play_video(sp_words.getSelectedItem().toString());
-            bt_record.setVisibility(View.GONE);
-            int i=0;
-            File n = new File(Environment.getExternalStorageDirectory().getPath() + "/Learn2Sign/"
-                    + sharedPreferences.getString(INTENT_ID,"0000")+"_"+sp_words.getSelectedItem().toString()+"_0" + ".mp4");
-            while(n.exists()) {
-                i++;
-                n = new File(Environment.getExternalStorageDirectory().getPath() + "/Learn2Sign/"
-                        + sharedPreferences.getString(INTENT_ID,"0000")+"_"+sp_words.getSelectedItem().toString()+"_"+i + ".mp4");
-            }
-            SaveFile saveFile = new SaveFile();
-            saveFile.execute(n.getPath(),videoUri.toString());
-
-            bt_send.setVisibility(View.VISIBLE);
-            bt_cancel.setVisibility(View.VISIBLE);
-
-            sp_words.setEnabled(false);
-            rb_learn.setEnabled(false);
-            rb_practice.setEnabled(false);
-        }*/
     }
 
     //Menu Item for logging out
