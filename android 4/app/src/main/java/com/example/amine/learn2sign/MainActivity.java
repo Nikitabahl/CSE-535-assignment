@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
     Context context;
     private static final boolean isLearn = true;
     static String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop","Cost", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
-    static HashMap<String, Integer> signMap = new HashMap<>();
+    static Map<String, Integer> signMap = new HashMap<>();
 
 
     @Override
@@ -158,18 +158,9 @@ public class MainActivity extends AppCompatActivity {
                 if( checkedId == rb_learn.getId() ) {
                     taskOnLearn();
                 } else if ( checkedId == rb_practice.getId()) {
-                    boolean check = checkCountForThreeEach();
-                    if(check){
-                        Intent intent = new Intent(context, PracticeActitvity.class);
-                        intent.putExtra(VIDEO_URI, videoUri);
-                        startActivity(intent);
-                    }
-                    else{
-                        taskOnLearn();
-                        rb_learn.setChecked(true);
-                        Toast.makeText(getApplicationContext(),"Learn more to enable practise",
-                                Toast.LENGTH_SHORT).show();
-                    }
+                    Intent intent = new Intent(context, PracticeActitvity.class);
+                    intent.putExtra(VIDEO_URI, videoUri);
+                    startActivity(intent);
                 }
                 sp_words.setVisibility(View.VISIBLE);
 
@@ -272,9 +263,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public boolean checkCountForThreeEach() {
-
-        boolean count = false;
+    public void checkCountForThreeEach() {
 
         String server_ip = getSharedPreferences(this.getPackageName(),
                 Context.MODE_PRIVATE).getString(INTENT_SERVER_ADDRESS,"10.211.17.171");
@@ -304,26 +293,36 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                         }
+
+                        boolean count = true;
+
+                        for (String name : signNames) {
+
+                            int check  = signMap.getOrDefault(name, 0);
+
+                            if (check < 3) {
+                                count = false;
+                                break;
+                            }
+                        }
+                        signMap.clear();
+
+                        if (!count) {
+                            rb_practice.setEnabled(false);
+                        } else {
+                            rb_practice.setEnabled(true);
+                        }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.d("html", error.toString());
+                        rb_practice.setEnabled(false);
                     }
                 });
 
         mRequestQueue.add(stringRequest);
-
-        count = true;
-        for(int check : signMap.values()){
-            if(check < 3){
-                count = false;
-                break;
-            }
-        }
-        signMap.clear();
-        return count;
     }
 
     @Override
@@ -336,6 +335,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
 
+        checkCountForThreeEach();
         vv_video_learn.start();
         time_started = System.currentTimeMillis();
         super.onResume();
