@@ -132,7 +132,7 @@ public class PracticeActitvity extends AppCompatActivity {
     static int upload_number = 0;
     static Queue<Integer> numbers = new LinkedList<>();
     static String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop","Cost", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
-
+    int performanceValue = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +149,7 @@ public class PracticeActitvity extends AppCompatActivity {
         rb_practice.setChecked(true);
 
         bt_accept.setVisibility(View.GONE);
+        bt_accept.setEnabled(false);
         bt_reject.setVisibility(View.GONE);
         taskOnPractise();
 
@@ -233,6 +234,15 @@ public class PracticeActitvity extends AppCompatActivity {
 
                 try {
                     performanceRating.setText(String.valueOf(i));
+                    performanceValue = i;
+
+                    if(performanceValue >= 3){
+                        bt_accept.setEnabled(true);
+                    }
+                    else{
+                        bt_accept.setEnabled(false);
+                    }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
