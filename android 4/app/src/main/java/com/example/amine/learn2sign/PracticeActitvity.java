@@ -148,6 +148,7 @@ public class PracticeActitvity extends AppCompatActivity {
         sp_words.setEnabled(false);
         rb_practice.setChecked(true);
 
+        vv_video_learn.setVisibility(View.GONE);
         bt_accept.setVisibility(View.GONE);
         bt_accept.setEnabled(false);
         bt_reject.setVisibility(View.GONE);
@@ -382,6 +383,7 @@ public class PracticeActitvity extends AppCompatActivity {
         if(!path.isEmpty()) {
             Uri uri = Uri.parse(path);
             vv_video_learn.setVideoURI(uri);
+            vv_video_learn.start();
         }
 
     }
@@ -462,9 +464,8 @@ public class PracticeActitvity extends AppCompatActivity {
 
         vv_record.setVisibility(View.GONE);
 
-        if(rb_practice.isSelected()) {
-            vv_video_learn.setVisibility(View.VISIBLE);
-        }
+        vv_video_learn.setVisibility(View.GONE);
+
 
         selectPlayVideo("");
 
@@ -489,6 +490,7 @@ public class PracticeActitvity extends AppCompatActivity {
         bt_practice_more.setVisibility(View.GONE);
         String choice = randomSignName();
         selectPlayVideo(choice);
+        vv_video_learn.setVisibility(View.GONE);
     }
 
     @OnClick(R.id.bt_accept_practice)
@@ -534,7 +536,6 @@ public class PracticeActitvity extends AppCompatActivity {
                     bt_accept.setVisibility(View.GONE);
                     bt_reject.setVisibility(View.GONE);
                     vv_record.setVisibility(View.GONE);
-                    rb_learn.setChecked(true);
                     ll_performance.setVisibility(View.GONE);
                     performanceIndicator.setVisibility(View.GONE);
                 }
@@ -622,6 +623,9 @@ public class PracticeActitvity extends AppCompatActivity {
 
                 sp_words.setEnabled(false);
 
+                performanceIndicator.setProgress(0);
+                bt_accept.setEnabled(false);
+
                 ll_performance.setVisibility(View.VISIBLE);
                 performanceIndicator.setVisibility(View.VISIBLE);
 
@@ -634,6 +638,7 @@ public class PracticeActitvity extends AppCompatActivity {
                 sharedPreferences.edit().putStringSet("RECORDED", set).apply();
                 sharedPreferences.edit().putInt("record_"+sp_words.getSelectedItem().toString(), try_number).apply();
 
+                vv_video_learn.setVisibility(View.VISIBLE);
                 vv_video_learn.start();
                 vv_record.start();
             }
