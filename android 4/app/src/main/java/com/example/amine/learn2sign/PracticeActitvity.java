@@ -127,6 +127,7 @@ public class PracticeActitvity extends AppCompatActivity {
     long time_started_return = 0;
     Activity mainActivity;
     Context context;
+    private String choice = "";
     private static final boolean isLearn = false;
     static int upload_number = 0;
     static Queue<Integer> numbers = new LinkedList<>();
@@ -144,7 +145,7 @@ public class PracticeActitvity extends AppCompatActivity {
         ButterKnife.bind(this);
         Stetho.initializeWithDefaults(this);
 
-        sp_words.setVisibility(View.GONE);
+        sp_words.setEnabled(false);
         rb_practice.setChecked(true);
 
         bt_accept.setVisibility(View.GONE);
@@ -254,8 +255,19 @@ public class PracticeActitvity extends AppCompatActivity {
     public void taskOnPractise() {
         Toast.makeText(getApplicationContext(),"Practice", Toast.LENGTH_SHORT).show();
         String choice = randomSignName();
-        vv_video_learn.setVisibility(View.VISIBLE);
+        this.choice = choice;
         rb_learn.setEnabled(true);
+
+        int i = 0;
+        for (String name : signNames) {
+
+            if (name.equals(choice)) {
+                sp_words.setSelection(i);
+                break;
+            }
+            i++;
+        }
+
         selectPlayVideo(choice);
         bt_practice_more.setVisibility(View.GONE);
         bt_record.setVisibility(View.VISIBLE);
@@ -279,7 +291,6 @@ public class PracticeActitvity extends AppCompatActivity {
     @Override
     protected void onResume() {
 
-        vv_video_learn.start();
         time_started = System.currentTimeMillis();
         super.onResume();
 
@@ -361,7 +372,6 @@ public class PracticeActitvity extends AppCompatActivity {
         if(!path.isEmpty()) {
             Uri uri = Uri.parse(path);
             vv_video_learn.setVideoURI(uri);
-            vv_video_learn.start();
         }
 
     }
@@ -445,6 +455,8 @@ public class PracticeActitvity extends AppCompatActivity {
         if(rb_practice.isSelected()) {
             vv_video_learn.setVisibility(View.VISIBLE);
         }
+
+        selectPlayVideo("");
 
         bt_record.setVisibility(View.VISIBLE);
 
@@ -636,7 +648,7 @@ public class PracticeActitvity extends AppCompatActivity {
                     rb_practice.setEnabled(false);
 
                     time_started = System.currentTimeMillis();
-                    vv_video_learn.start();
+                    vv_video_learn.suspend();
                 }
             }
 

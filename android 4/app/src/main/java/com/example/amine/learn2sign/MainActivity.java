@@ -252,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (name.equals(videoUri)) {
                 sp_words.setSelection(i);
+                break;
             }
             i++;
         }
@@ -322,7 +323,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         signMap.clear();
-        count=true;
         return count;
     }
 
