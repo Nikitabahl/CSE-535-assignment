@@ -141,6 +141,7 @@ public class PracticeActitvity extends AppCompatActivity {
     long seconds;
 
     File logFile;
+    String filePath = "";
     FileOutputStream fo ;
 
     @Override
@@ -153,8 +154,8 @@ public class PracticeActitvity extends AppCompatActivity {
         startTime = System.currentTimeMillis();
 
         try {
-            String filepath = getApplicationContext().getFilesDir().getAbsolutePath().toString() + "/logFile.txt";
-            logFile = new File(filepath);
+            filePath = getApplicationContext().getFilesDir().getAbsolutePath() + "/logFile.txt";
+            logFile = new File(filePath);
             logFile.createNewFile();
         }
         catch(IOException ex){
@@ -481,6 +482,8 @@ public class PracticeActitvity extends AppCompatActivity {
                    Log.e("Exception", "File write failed: " + e.toString());
                }
 
+            Log.i("Button Pressed","Record Video button Pressed in Practice Mode.");
+
             startActivityForResult(t,9999);
 
         }
@@ -528,6 +531,8 @@ public class PracticeActitvity extends AppCompatActivity {
                 Log.e("Exception", "File write failed: " + e.toString());
         }
 
+        Log.i("Button Pressed","Reject Button Pressed.");
+
     }
 
     @OnClick(R.id.bt_practice_more)
@@ -562,6 +567,8 @@ public class PracticeActitvity extends AppCompatActivity {
         catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
+
+        Log.i("Button Pressed","Practice More Button Pressed.");
     }
 
     @OnClick(R.id.bt_accept_practice)
@@ -593,6 +600,8 @@ public class PracticeActitvity extends AppCompatActivity {
         } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
+
+        Log.i("Accept Button Pressed","Accept Button was pressed.");
 
         final String ID = id;
 
@@ -792,6 +801,9 @@ public class PracticeActitvity extends AppCompatActivity {
         //respond to menu item selection
         switch (item.getItemId()) {
             case R.id.menu_logout:
+
+                Log.i("Menu Logout Done","Logged out of Menu.");
+
                 mainActivity = this;
                 final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
                 alertDialog.setTitle("ALERT");
