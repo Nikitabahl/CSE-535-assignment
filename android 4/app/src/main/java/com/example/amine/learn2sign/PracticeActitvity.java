@@ -117,7 +117,7 @@ public class PracticeActitvity extends AppCompatActivity {
     LinearLayout ll_performance;
 
     @BindView(R.id.performance_rating)
-     TextView performanceRating;
+    TextView performanceRating;
 
 
     String path;
@@ -410,6 +410,7 @@ public class PracticeActitvity extends AppCompatActivity {
     @OnClick(R.id.bt_record)
     public void record_video() {
 
+        Log.i("Button Pressed","Record Video button Pressed in Practice Mode.");
         if( ContextCompat.checkSelfPermission(this,
                 Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED ) {
@@ -493,6 +494,7 @@ public class PracticeActitvity extends AppCompatActivity {
     @OnClick(R.id.bt_reject_practice)
     public void reject() {
 
+        Log.i("Button Pressed","Reject Button Pressed.");
         vv_record.setVisibility(View.GONE);
 
         vv_video_learn.setVisibility(View.GONE);
@@ -510,7 +512,6 @@ public class PracticeActitvity extends AppCompatActivity {
 
         ll_performance.setVisibility(View.GONE);
         performanceIndicator.setVisibility(View.GONE);
-
         time_started = System.currentTimeMillis();
 
         final String id = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getString(INTENT_ID,"00000000");
@@ -528,7 +529,7 @@ public class PracticeActitvity extends AppCompatActivity {
 
     @OnClick(R.id.bt_practice_more)
     public void practiceMore() {
-
+        Log.i("Button Pressed","Practice More Button Pressed.");
         bt_record.setVisibility(View.VISIBLE);
         bt_practice_more.setVisibility(View.GONE);
         String choice = randomSignName();
@@ -549,7 +550,7 @@ public class PracticeActitvity extends AppCompatActivity {
 
     @OnClick(R.id.bt_accept_practice)
     public void accept() {
-
+        Log.i("Accept Button Pressed","Accept Button was pressed.");
         String id = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE)
                 .getString(INTENT_ID,"00000000");
 
@@ -662,6 +663,8 @@ public class PracticeActitvity extends AppCompatActivity {
             @Override
             public void onFinish() {
                 Log.i("Practice","Upload Successful");
+                long total_time_practiced = System.currentTimeMillis() - time_started;
+                Log.i("Activity_PRACTICE:","User Practiced Activity:"+videoUri+" for "+ Long.toString(total_time_practiced)+"ms.");
 
                 if (upload_number == 1) {
                     upload_number = 0;
@@ -772,6 +775,7 @@ public class PracticeActitvity extends AppCompatActivity {
         //respond to menu item selection
         switch (item.getItemId()) {
             case R.id.menu_logout:
+                Log.i("Menu Logout Done","Logged out of Menu.");
                 mainActivity = this;
                 final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
                 alertDialog.setTitle("ALERT");
@@ -805,6 +809,7 @@ public class PracticeActitvity extends AppCompatActivity {
 
             case R.id.menu_upload_server:
 
+                Log.i("Upload Menu Button","Upload Menu Button Selected in practice mode.");
                 Toast.makeText(PracticeActitvity.this,
                         "Upload menu not active in Practice Mode", Toast.LENGTH_SHORT).show();
 
