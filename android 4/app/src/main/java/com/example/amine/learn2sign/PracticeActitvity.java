@@ -43,6 +43,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -134,12 +135,30 @@ public class PracticeActitvity extends AppCompatActivity {
     static String[] signNames = new String[]{"About", "And", "Can", "Cat", "Cop","Cost", "Day", "Deaf", "Decide", "Father", "Find", "Go Out", "Gold","Goodnight", "Hearing", "Here", "Hospital", "Hurt", "If", "Large", "Hello", "Help", "Sorry", "After", "Tiger"};
     int performanceValue = 0;
 
+    long startTime;
+    long endTime;
+    long seconds;
+
+    File logFile;
+    FileOutputStream fo ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         context = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        startTime = System.currentTimeMillis();
+
+        try {
+            String filepath = getApplicationContext().getFilesDir().getAbsolutePath().toString() + "/logFile.txt";
+            logFile = new File(filepath);
+            logFile.createNewFile();
+        }
+        catch(IOException ex){
+            ex.printStackTrace();
+        }
 
         //bind xml to activity
         ButterKnife.bind(this);
@@ -454,6 +473,18 @@ public class PracticeActitvity extends AppCompatActivity {
             t.putExtra(INTENT_WORD,sp_words.getSelectedItem().toString());
             t.putExtra(INTENT_TIME_WATCHED, time_started);
             t.putExtra(ACTIVITY_TYPE, isLearn);
+
+            final String id = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getString(INTENT_ID,"00000000");
+               try {
+                    fo = new FileOutputStream(logFile, true);
+                    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fo);
+                    outputStreamWriter.append("User with ID "+ id + " recording video for sign "+ sp_words.getSelectedItem().toString() +"\n");
+                    outputStreamWriter.close();
+                    }
+                catch (IOException e) {
+                   Log.e("Exception", "File write failed: " + e.toString());
+               }
+
             startActivityForResult(t,9999);
 
         }
@@ -481,6 +512,18 @@ public class PracticeActitvity extends AppCompatActivity {
         performanceIndicator.setVisibility(View.GONE);
 
         time_started = System.currentTimeMillis();
+
+        final String id = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getString(INTENT_ID,"00000000");
+        try {
+            fo = new FileOutputStream(logFile, true);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fo);
+            outputStreamWriter.append("User with ID "+id + " clicked on reject for sign "+sp_words.getSelectedItem().toString()+"\n");
+            outputStreamWriter.close();
+            }
+        catch (IOException e) {
+                Log.e("Exception", "File write failed: " + e.toString());
+        }
+
     }
 
     @OnClick(R.id.bt_practice_more)
@@ -491,6 +534,17 @@ public class PracticeActitvity extends AppCompatActivity {
         String choice = randomSignName();
         selectPlayVideo(choice);
         vv_video_learn.setVisibility(View.GONE);
+
+        final String id = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getString(INTENT_ID,"00000000");
+        try {
+            fo = new FileOutputStream(logFile, true);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fo);
+            outputStreamWriter.append("User with ID "+id + " clicked on Practice More \n");
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
     }
 
     @OnClick(R.id.bt_accept_practice)
@@ -514,6 +568,16 @@ public class PracticeActitvity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        try {
+            fo = new FileOutputStream(logFile);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fo);
+            outputStreamWriter.append("User with ID "+ id + " clicked on accept for sign " + sp_words.getSelectedItem().toString() + "\n");
+            outputStreamWriter.close();
+        } catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+
+        final String ID = id;
 
         // send request
         AsyncHttpClient client = new AsyncHttpClient();
@@ -538,8 +602,24 @@ public class PracticeActitvity extends AppCompatActivity {
                     vv_record.setVisibility(View.GONE);
                     ll_performance.setVisibility(View.GONE);
                     performanceIndicator.setVisibility(View.GONE);
+
+                    endTime = System.currentTimeMillis();
+                    seconds = (endTime - startTime) / 1000;
+
+                    try {
+                        fo = new FileOutputStream(logFile, true);
+                        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fo);
+                        outputStreamWriter.append("User with ID " + ID + " successfully uploaded the video for sign "+ sp_words.getSelectedItem().toString() + "\n" );
+                        outputStreamWriter.append("User with ID " + ID + " took " + seconds + " seconds to learn "+ sp_words.getSelectedItem().toString() + "\n" );
+                        outputStreamWriter.close();
+                    }
+                    catch (IOException e) {
+                        Log.e("Exception", "File write failed: " + e.toString());
+                    }
+
                 }
                 else {
+
                     Toast.makeText(PracticeActitvity.this,
                             "Failed", Toast.LENGTH_SHORT).show();
                 }
@@ -549,6 +629,16 @@ public class PracticeActitvity extends AppCompatActivity {
             public void onFailure(int statusCode, Header[] headers, byte[] bytes, Throwable throwable) {
                 // handle failure response
                 Log.e("msg fail",statusCode+"");
+
+                try {
+                    fo = new FileOutputStream(logFile, true);
+                    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fo);
+                    outputStreamWriter.append("User with ID " + ID + " failed to uploaded the video for sign "+ sp_words.getSelectedItem().toString() + "\n" );
+                    outputStreamWriter.close();
+                }
+                catch (IOException e) {
+                    Log.e("Exception", "File write failed: " + e.toString());
+                }
 
                 Toast.makeText(PracticeActitvity.this,
                         "Something Went Wrong", Toast.LENGTH_SHORT).show();
