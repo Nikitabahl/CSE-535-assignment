@@ -47,6 +47,7 @@ import java.io.OutputStreamWriter;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -325,20 +326,19 @@ public class PracticeActitvity extends AppCompatActivity {
     //method to generate random names for actions
     public String randomSignName()
     {
-        int Min = 0;
-        int Max = 24;
+        Random randomGenerator = new Random();
 
-        Double rndNum = Math.random() * ( Max - Min );
+        int rndNum = randomGenerator.nextInt(24);
 
-        while(numbers.contains(rndNum.intValue())){
-            rndNum = (Math.random() * ( Max - Min ));
+        while(numbers.contains(rndNum)){
+            rndNum = randomGenerator.nextInt(24);
         }
 
-        numbers.add(rndNum.intValue());
+        numbers.add(rndNum);
         if(numbers.size() >10) {
             numbers.remove();
         }
-        return signNames[rndNum.intValue()];
+        return signNames[rndNum];
 
     }
 
@@ -537,6 +537,17 @@ public class PracticeActitvity extends AppCompatActivity {
         bt_practice_more.setVisibility(View.GONE);
         String choice = randomSignName();
         selectPlayVideo(choice);
+
+        int i = 0;
+        for (String name : signNames) {
+
+            if (name.equals(choice)) {
+                sp_words.setSelection(i);
+                break;
+            }
+            i++;
+        }
+
         vv_video_learn.setVisibility(View.GONE);
 
         reinitiateVideoView();
