@@ -167,6 +167,7 @@ public class PracticeActitvity extends AppCompatActivity {
         sp_words.setEnabled(false);
         rb_practice.setChecked(true);
 
+        vv_record.setVisibility(View.VISIBLE);
         vv_video_learn.setVisibility(View.GONE);
         bt_accept.setVisibility(View.GONE);
         bt_accept.setEnabled(false);
@@ -248,10 +249,6 @@ public class PracticeActitvity extends AppCompatActivity {
         performanceIndicator.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                //HashSet<String> ratingBarSet = (HashSet<String>) sharedPreferences.getStringSet("RATING_BAR_CLICK", new HashSet<String>());
-                //ratingBarSet.add("RATING_BAR_CLICK_" + sharedPreferences.getString(INTENT_ID, "") + "_" + sharedPreferences.getString(INTENT_EMAIL, "") + "_" + String.valueOf(System.currentTimeMillis()));
-                //sharedPreferences.edit().putStringSet("RATING_BAR_CLICK", ratingBarSet).apply();
-
                 try {
                     performanceRating.setText(String.valueOf(i));
                     performanceValue = i;
@@ -266,7 +263,6 @@ public class PracticeActitvity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                //sharedPreferences.edit().putInt("performance", i).apply();
             }
 
             @Override
@@ -490,10 +486,18 @@ public class PracticeActitvity extends AppCompatActivity {
         }
     }
 
+    private void reinitiateVideoView() {
+        vv_record.setVisibility(View.GONE);
+        vv_record.clearAnimation();
+        vv_record.suspend();
+        vv_record.setVideoURI(null);
+        vv_record.setVisibility(View.VISIBLE);
+    }
+
     @OnClick(R.id.bt_reject_practice)
     public void reject() {
 
-        vv_record.setVisibility(View.GONE);
+        reinitiateVideoView();
 
         vv_video_learn.setVisibility(View.GONE);
 
@@ -534,6 +538,8 @@ public class PracticeActitvity extends AppCompatActivity {
         String choice = randomSignName();
         selectPlayVideo(choice);
         vv_video_learn.setVisibility(View.GONE);
+
+        reinitiateVideoView();
 
         final String id = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getString(INTENT_ID,"00000000");
         try {
@@ -596,12 +602,15 @@ public class PracticeActitvity extends AppCompatActivity {
                     sharedPreferences.edit().putInt("Number_Accepted",
                             1 + sharedPreferences.getInt("Number_Accepted",0)).apply();
 
+                    vv_video_learn.setVisibility(View.GONE);
                     bt_practice_more.setVisibility(View.VISIBLE);
                     bt_accept.setVisibility(View.GONE);
                     bt_reject.setVisibility(View.GONE);
                     vv_record.setVisibility(View.GONE);
                     ll_performance.setVisibility(View.GONE);
                     performanceIndicator.setVisibility(View.GONE);
+
+                    reinitiateVideoView();
 
                     endTime = System.currentTimeMillis();
                     seconds = (endTime - startTime) / 1000;
