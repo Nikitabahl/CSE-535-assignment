@@ -643,8 +643,14 @@ public class MainActivity extends AppCompatActivity {
                     return true;
             case R.id.menu_upload_server:
                 sharedPreferences.edit().putInt(getString(R.string.gotoupload), sharedPreferences.getInt(getString(R.string.gotoupload),0)+1).apply();
-                Intent t = new Intent(this,UploadActivity.class);
+                Intent t = new Intent(this, UploadActivity.class);
                 startActivityForResult(t,2000);
+
+                return true;
+
+            case R.id.menu_upload_excel_file:
+                Intent intent = new Intent(this, ClassifyExcel.class);
+                startActivityForResult(intent,2000);
 
             default:
                 return super.onOptionsItemSelected(item);

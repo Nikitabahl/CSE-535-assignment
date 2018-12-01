@@ -5,4 +5,7 @@
 
     <item android:title="GoTo Upload"
     android:id="@+id/menu_upload_server"></item>
+
+    <item android:title="Upload Excel Files"
+        android:id="@+id/menu_upload_excel_file"></item>
 </menu>
