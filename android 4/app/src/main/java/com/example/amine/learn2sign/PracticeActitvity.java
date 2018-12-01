@@ -47,6 +47,7 @@ import java.io.OutputStreamWriter;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -140,6 +141,7 @@ public class PracticeActitvity extends AppCompatActivity {
     long seconds;
 
     File logFile;
+    String filePath = "";
     FileOutputStream fo ;
 
     @Override
@@ -152,8 +154,8 @@ public class PracticeActitvity extends AppCompatActivity {
         startTime = System.currentTimeMillis();
 
         try {
-            String filepath = getApplicationContext().getFilesDir().getAbsolutePath().toString() + "/logFile.txt";
-            logFile = new File(filepath);
+            filePath = getApplicationContext().getFilesDir().getAbsolutePath() + "/logFile.txt";
+            logFile = new File(filePath);
             logFile.createNewFile();
         }
         catch(IOException ex){
@@ -325,20 +327,19 @@ public class PracticeActitvity extends AppCompatActivity {
     //method to generate random names for actions
     public String randomSignName()
     {
-        int Min = 0;
-        int Max = 24;
+        Random randomGenerator = new Random();
 
-        Double rndNum = Math.random() * ( Max - Min );
+        int rndNum = randomGenerator.nextInt(24);
 
-        while(numbers.contains(rndNum.intValue())){
-            rndNum = (Math.random() * ( Max - Min ));
+        while(numbers.contains(rndNum)){
+            rndNum = randomGenerator.nextInt(24);
         }
 
-        numbers.add(rndNum.intValue());
+        numbers.add(rndNum);
         if(numbers.size() >10) {
             numbers.remove();
         }
-        return signNames[rndNum.intValue()];
+        return signNames[rndNum];
 
     }
 
@@ -481,6 +482,8 @@ public class PracticeActitvity extends AppCompatActivity {
                    Log.e("Exception", "File write failed: " + e.toString());
                }
 
+            Log.i("Button Pressed","Record Video button Pressed in Practice Mode.");
+
             startActivityForResult(t,9999);
 
         }
@@ -528,6 +531,8 @@ public class PracticeActitvity extends AppCompatActivity {
                 Log.e("Exception", "File write failed: " + e.toString());
         }
 
+        Log.i("Button Pressed","Reject Button Pressed.");
+
     }
 
     @OnClick(R.id.bt_practice_more)
@@ -537,6 +542,17 @@ public class PracticeActitvity extends AppCompatActivity {
         bt_practice_more.setVisibility(View.GONE);
         String choice = randomSignName();
         selectPlayVideo(choice);
+
+        int i = 0;
+        for (String name : signNames) {
+
+            if (name.equals(choice)) {
+                sp_words.setSelection(i);
+                break;
+            }
+            i++;
+        }
+
         vv_video_learn.setVisibility(View.GONE);
 
         reinitiateVideoView();
@@ -551,6 +567,8 @@ public class PracticeActitvity extends AppCompatActivity {
         catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
+
+        Log.i("Button Pressed","Practice More Button Pressed.");
     }
 
     @OnClick(R.id.bt_accept_practice)
@@ -582,6 +600,8 @@ public class PracticeActitvity extends AppCompatActivity {
         } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
+
+        Log.i("Accept Button Pressed","Accept Button was pressed.");
 
         final String ID = id;
 
@@ -781,6 +801,9 @@ public class PracticeActitvity extends AppCompatActivity {
         //respond to menu item selection
         switch (item.getItemId()) {
             case R.id.menu_logout:
+
+                Log.i("Menu Logout Done","Logged out of Menu.");
+
                 mainActivity = this;
                 final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
                 alertDialog.setTitle("ALERT");
